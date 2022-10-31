@@ -82,7 +82,7 @@ public class OrderService {
                     .build();
 
             s3Client.putObject(objectRequest, RequestBody.fromString(gson.toJson(order)));
-            Order orderEntity = new Order(dealerId, order.getCustomerId() , order.getOrderId(), "dealer-orders", fileName, order.getOrderStatus());
+            Order orderEntity = new Order(dealerId, order.getCustomerId() +"#" + order.getOrderId(), "dealer-orders", fileName, order.getOrderStatus());
             saveObjectToDb(orderEntity);
             return order;
         } catch(S3Exception e) {

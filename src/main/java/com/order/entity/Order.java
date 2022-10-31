@@ -13,10 +13,9 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 @DynamoDbBean
 public class Order {
 
-    public Order(String dealerId, String customerId, String orderId, String bucketName, String fileName, String orderStatus) {
+    public Order(String dealerId, String customerIdAndOrderId, String bucketName, String fileName, String orderStatus) {
         this.dealerId = dealerId;
-        this.customerId = customerId;
-        OrderId = orderId;
+        this.customerIdAndOrderId = customerIdAndOrderId;
         this.bucketName = bucketName;
         this.fileName = fileName;
         this.orderStatus = orderStatus;
@@ -30,9 +29,9 @@ public class Order {
                             .setter(Order::setDealerId)
                             .tags(primaryPartitionKey()))
                     .addAttribute(String.class,
-                            a -> a.name("customerIdAndOrderId")
-                                    .getter(Order::getCustomerId)
-                                    .setter(Order::setCustomerId).tags(primarySortKey())
+                            a -> a.name("customerId#OrderId")
+                                    .getter(Order::getCustomerIdAndOrderId)
+                                    .setter(Order::setCustomerIdAndOrderId).tags(primarySortKey())
                                     );
 
     public Order() {
@@ -76,27 +75,18 @@ public class Order {
     }
 
     private String dealerId;
-    @DynamoDbAttribute("customerId")
+
+    @DynamoDbAttribute("customerId#OrderId")
     @DynamoDbSortKey
-    public String getCustomerId() {
-        return customerId;
+    public String getCustomerIdAndOrderId() {
+        return customerIdAndOrderId;
     }
 
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId;
-    }
-    @DynamoDbSecondarySortKey(indexNames = "orderId")
-    @DynamoDbAttribute("orderId")
-    public String getOrderId() {
-        return OrderId;
+    public void setCustomerIdAndOrderId(String customerIdAndOrderId) {
+        this.customerIdAndOrderId = customerIdAndOrderId;
     }
 
-    public void setOrderId(String orderId) {
-        OrderId = orderId;
-    }
-
-    private String customerId;
-    private String OrderId;
+    private String customerIdAndOrderId;
     private String bucketName;
     private String fileName;
     private String orderStatus;
