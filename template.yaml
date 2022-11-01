@@ -7,7 +7,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: java8
-      Handler: com.order.Order::handleRequest
+      Handler: com.order.handlers.Order::handleRequest
       Timeout: 60
       MemorySize: 512
       CodeUri: ./target/order.jar

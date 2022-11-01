@@ -5,18 +5,16 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.order.DependencyFactory;
-import com.order.model.Error;
-import com.order.model.OrderSave;
-import com.order.model.RequestOrderList;
-import com.order.model.Response;
-import com.order.service.OrderListService;
-import software.amazon.awssdk.http.HttpStatusCode;
+import com.order.model.Order;
+import com.order.model.OrderRequest;
+import com.order.service.DbService;
+import com.order.service.S3Service;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.s3.S3Client;
 
 import java.util.ArrayList;
 
-public class OrderList implements RequestHandler<RequestOrderList, Response>{
+public class OrderList implements RequestHandler<OrderRequest, ArrayList<Order>>{
     private final S3Client s3Client;
     private final DynamoDbClient dynamoDbClient;
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -36,17 +34,22 @@ public class OrderList implements RequestHandler<RequestOrderList, Response>{
 
 //
     @Override
-    public Response handleRequest(RequestOrderList requestEvent, Context context) {
-        OrderListService service = new OrderListService(dynamoDbClient, s3Client, context);
-        ArrayList<OrderSave> ordersList;
+    public ArrayList<Order> handleRequest(OrderRequest requestEvent, Context context) {
+        S3Service s3Service = new S3Service(s3Client, context);
+        DbService dbService = new DbService(dynamoDbClient, context);
+        ArrayList<com.order.entity.Order> orderListFromDb;
+        ArrayList<Order> orderList = new ArrayList<>();
 
         if(requestEvent.isShowAll()) {
-            ordersList = service.orderList(requestEvent.getDealerId());
-
+            orderListFromDb = dbService.orderList(requestEvent.getDealerId());
         } else {
-            ordersList = service.orderList(requestEvent.getDealerId(), requestEvent.getOrderId(), requestEvent.getCustomerId());
+            orderListFromDb = dbService.orderList(requestEvent.getDealerId(), requestEvent.getOrderId(), requestEvent.getCustomerId());
         }
-        return new Response(HttpStatusCode.OK,ordersList,new Error());
 
+        orderListFromDb.forEach(order -> {
+            Order orderObject = s3Service.getObjectFromS3(order.getBucketName(),order.getFileName());
+            orderList.add(orderObject);
+        });
+        return orderList;
     }
 }
