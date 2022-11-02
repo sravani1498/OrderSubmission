@@ -7,6 +7,7 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 /**
  * The module containing all dependencies required by the {@link Order}.
@@ -31,6 +32,14 @@ public class DependencyFactory {
      */
     public static DynamoDbClient dynamoDbClient() {
         return DynamoDbClient.builder()
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .region(Region.US_EAST_1)
+                .httpClientBuilder(UrlConnectionHttpClient.builder())
+                .build();
+    }
+
+    public static SqsClient sqsClient() {
+        return SqsClient.builder()
                 .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                 .region(Region.US_EAST_1)
                 .httpClientBuilder(UrlConnectionHttpClient.builder())
