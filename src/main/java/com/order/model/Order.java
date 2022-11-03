@@ -1,11 +1,32 @@
 package com.order.model;
 
+import java.util.Date;
+
 public class Order {
 
     private String model;
     private String make;
     private String year;
     private String fuelType;
+
+    public String getBucketname() {
+        return bucketname;
+    }
+
+    public void setBucketname(String bucketname) {
+        this.bucketname = bucketname;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    private String bucketname;
+    private String fileName;
 
     public String getDealerId() {
         return dealerId;
@@ -113,5 +134,39 @@ public class Order {
     }
 
     private String orderStatus;
+
+    public Order(String model, String make, String year, String fuelType, String dealerId, String customerId, String customerName, String city, String orderId, String orderStatus, Date expectedDeliveryDate, double price) {
+        this.model = model;
+        this.make = make;
+        this.year = year;
+        this.fuelType = fuelType;
+        this.dealerId = dealerId;
+        this.customerId = customerId;
+        this.customerName = customerName;
+        this.city = city;
+        this.orderId = orderId;
+        this.orderStatus = orderStatus;
+        this.expectedDeliveryDate = expectedDeliveryDate;
+        this.price = price;
+    }
+
+    public Date getExpectedDeliveryDate() {
+        return expectedDeliveryDate;
+    }
+
+    public void setExpectedDeliveryDate(Date expectedDeliveryDate) {
+        this.expectedDeliveryDate = expectedDeliveryDate;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    private Date expectedDeliveryDate;
+    private double price;
 
 }

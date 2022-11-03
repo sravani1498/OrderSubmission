@@ -7,6 +7,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.*;
 
@@ -90,4 +91,34 @@ public class Order {
     private String bucketName;
     private String fileName;
     private String orderStatus;
+
+    public Order(String dealerId, String customerIdAndOrderId, String bucketName, String fileName, String orderStatus, double price, String expectedDeliveryDate) {
+        this.dealerId = dealerId;
+        this.customerIdAndOrderId = customerIdAndOrderId;
+        this.bucketName = bucketName;
+        this.fileName = fileName;
+        this.orderStatus = orderStatus;
+        this.price = price;
+        this.expectedDeliveryDate = expectedDeliveryDate;
+    }
+
+    private double price;
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public String getExpectedDeliveryDate() {
+        return expectedDeliveryDate;
+    }
+
+    public void setExpectedDeliveryDate(String expectedDeliveryDate) {
+        this.expectedDeliveryDate = expectedDeliveryDate;
+    }
+
+    private String expectedDeliveryDate;
 }

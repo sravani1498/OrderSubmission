@@ -14,6 +14,7 @@ com\order\exceptions\S3FileUploadException.class
 com\order\handlers\OrderInitiate.class
 com\order\service\DbService.class
 com\order\exceptions\OrderUpdateException.class
+com\order\handlers\SQSRead.class
 com\order\entity\Order.class
 com\order\exceptions\SqsPostException.class
 com\order\handlers\OrderUpdate.class

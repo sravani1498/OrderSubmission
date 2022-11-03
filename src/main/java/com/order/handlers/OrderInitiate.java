@@ -31,12 +31,11 @@ public class OrderInitiate {
         sqsClient = DependencyFactory.sqsClient();
     }
 
-
-
     public void handleRequest(Context context) {
         DbService dbService = new DbService(dynamoDbClient, context);
         SQSService sqsService = new SQSService(sqsClient, context);
         ArrayList<Order> ordersFromDb = dbService.scanOrderReceived();
+        context.getLogger().log("Total orders with status received"+ordersFromDb.size());
         ordersFromDb.forEach(order -> {
             String customerId = order.getCustomerIdAndOrderId().split("#")[0];
             String orderId = order.getCustomerIdAndOrderId().split("#")[1];

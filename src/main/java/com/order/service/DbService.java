@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.order.entity.Order;
 import com.order.exceptions.DbException;
 import com.order.exceptions.IoException;
+import com.order.model.OrderRequest;
 import software.amazon.awssdk.enhanced.dynamodb.*;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
@@ -100,7 +101,7 @@ public class DbService {
         myMap.put(":val1", attr);
 
         Map<String, String> myExMap = new HashMap<>();
-        myExMap.put("#orderSttaus", "orderStatus");
+        myExMap.put("#orderStatus", "orderStatus");
 
         // Set the Expression so only Closed items are queried from the Work table
         Expression expression = Expression.builder()
@@ -114,7 +115,7 @@ public class DbService {
                 .build();
 
         // Get items in the Record table and write out the ID value
-        Iterator<Order> results = orderTable.scan().items().iterator();
+        Iterator<Order> results = orderTable.scan(enhancedRequest).items().iterator();
         ArrayList<Order> ordersFromDb = new ArrayList<>();
 
         while (results.hasNext()) {
@@ -132,6 +133,22 @@ public class DbService {
                     (GetItemEnhancedRequest.Builder requestBuilder) -> requestBuilder.key(key));
             order.setOrderStatus("Initiated");
             orderTable.updateItem(order);
+        }catch(DynamoDbException e) {
+            context.getLogger().log("Exception while updating order status: " + e.getMessage());
+            throw new DbException("Can't update order status to process initiated");
+        }
+    }
+
+    public void processOrder(com.order.model.Order order){
+        try {
+            DynamoDbTable<com.order.entity.Order> orderTable = enhancedClient.table("Order", TableSchema.fromBean(com.order.entity.Order.class));
+            Key key = Key.builder().partitionValue(order.getDealerId()).sortValue(order.getCustomerId()+ "#" + order.getOrderId()).build();
+            Order result = orderTable.getItem(
+                    (GetItemEnhancedRequest.Builder requestBuilder) -> requestBuilder.key(key));
+            result.setOrderStatus("Processed");
+            result.setExpectedDeliveryDate(order.getExpectedDeliveryDate().toString());
+            result.setPrice(order.getPrice());
+            orderTable.updateItem(result);
         }catch(DynamoDbException e) {
             context.getLogger().log("Exception while updating order status: " + e.getMessage());
             throw new DbException("Can't update order status to process initiated");
