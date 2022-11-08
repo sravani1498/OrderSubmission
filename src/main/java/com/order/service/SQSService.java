@@ -32,8 +32,8 @@ public class SQSService {
             obj.addProperty("dealerId", dealerId);
             obj.addProperty("customerId", customerId);
             obj.addProperty("orderId", orderId);
-            obj.addProperty("bucketName", bucketName);
-            obj.addProperty("objectKey", objectKey);
+            obj.addProperty("bucketname", bucketName);
+            obj.addProperty("fileName", objectKey);
 
             sqsClient.sendMessage(SendMessageRequest.builder()
                     .queueUrl(queueUrl)

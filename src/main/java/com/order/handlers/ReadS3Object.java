@@ -24,7 +24,10 @@ public class ReadS3Object implements RequestHandler<Order, Order> {
     }
 
     public Order handleRequest(Order input , Context context) {
+        context.getLogger().log("Input Req: "+gson.toJson(input));
         S3Service s3Service = new S3Service(s3Client, context);
-        return s3Service.getObjectFromS3(input.getBucketname(),input.getFileName());
+        Order order = s3Service.getObjectFromS3(input.getBucketname(),input.getFileName());
+        order.setDealerId(input.getDealerId());
+        return order;
     }
 }

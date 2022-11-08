@@ -48,6 +48,8 @@ public class Order implements RequestHandler<OrderRequest, ArrayList<com.order.m
         S3Service s3Service = new S3Service(s3Client, context);
         DbService dbService = new DbService(dynamoDbClient, context);
         orderList.forEach(order ->  {
+            order.setCity(order.getCity().replaceAll("[^A-Za-z0-9]",""));
+            order.setMake(order.getMake().replaceAll("[^A-Za-z0-9]",""));
             com.order.entity.Order orderEntity = s3Service.putObjectToS3(order);
             dbService.saveObjectToDb(orderEntity);
         });
