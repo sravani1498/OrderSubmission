@@ -1,4 +1,6 @@
-# App
+# Order Application
+
+This project contains order related lambda handlers like uploadOrderFile, orderList, Order Update, Order Process.
 
 This project contains an AWS Lambda maven application with [AWS Java SDK 2.x](https://github.com/aws/aws-sdk-java-v2) dependencies.
 
