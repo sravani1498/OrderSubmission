@@ -10,8 +10,10 @@ import com.order.model.OrderRequest;
 import com.order.service.DbService;
 import com.order.service.S3Service;
 import com.order.service.UtilHelper;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.identity.DefaultAzureCredentialBuilder;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.utils.StringUtils;
 
 import java.util.*;
@@ -23,7 +25,7 @@ import java.util.*;
  * @see <a href=https://docs.aws.amazon.com/lambda/latest/dg/java-handler.html>Lambda Java Handler</a> for more information
  */
 public class Order implements RequestHandler<OrderRequest, ArrayList<com.order.model.Order>> {
-    private final S3Client s3Client;
+    private final BlobServiceClient blobServiceClient;
     private final DynamoDbClient dynamoDbClient;
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -31,7 +33,9 @@ public class Order implements RequestHandler<OrderRequest, ArrayList<com.order.m
     public Order() {
         // Initialize the SDK client outside of the handler method so that it can be reused for subsequent invocations.
         // It is initialized when the class is loaded.
-        s3Client = DependencyFactory.s3Client();
+        blobServiceClient = new BlobServiceClientBuilder()
+                .credential(new DefaultAzureCredentialBuilder().build())
+                .buildClient();
         // Consider invoking a simple api here to pre-warm up the application, eg: dynamodb#listTables
         // Initialize the SDK client outside of the handler method so that it can be reused for subsequent invocations.
         // It is initialized when the class is loaded.
@@ -45,7 +49,7 @@ public class Order implements RequestHandler<OrderRequest, ArrayList<com.order.m
             throw new InputException("User name or password is empty");
         }
         ArrayList<com.order.model.Order> orderList = new UtilHelper().convertToOrder(requestEvent);
-        S3Service s3Service = new S3Service(s3Client, context);
+        S3Service s3Service = new S3Service(blobServiceClient, context);
         DbService dbService = new DbService(dynamoDbClient, context);
         orderList.forEach(order ->  {
             order.setCity(order.getCity().replaceAll("[^A-Za-z0-9]",""));

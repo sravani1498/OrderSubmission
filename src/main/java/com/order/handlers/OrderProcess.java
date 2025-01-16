@@ -7,8 +7,9 @@ import com.google.gson.GsonBuilder;
 import com.order.DependencyFactory;
 import com.order.model.Order;
 import com.order.service.DbService;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.s3.S3Client;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.identity.DefaultAzureCredentialBuilder;
 
 public class OrderProcess  {
     private final DynamoDbClient dynamoDbClient;

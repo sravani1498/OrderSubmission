@@ -13,21 +13,26 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobProperties;
+import com.azure.storage.blob.specialized.BlockBlobClient;
+import com.azure.identity.DefaultAzureCredentialBuilder;
 
 public class OrderUpdateService {
 
     private Context context;
     private DynamoDbEnhancedClient enhancedClient;
-    private S3Client s3Client;
+    private BlobServiceClient blobServiceClient;
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 
-    public OrderUpdateService(DynamoDbClient client, S3Client s3Client, Context context) {
+    public OrderUpdateService(DynamoDbClient client, BlobServiceClient blobServiceClient, Context context) {
         this.context = context;
-        this.s3Client = s3Client;
+        this.blobServiceClient = new BlobServiceClientBuilder()
+                .endpoint("https://<your-storage-account-name>.blob.core.windows.net")
+                .credential(new DefaultAzureCredentialBuilder().build())
+                .buildClient();
         this.enhancedClient = DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(client)
                 .build();
@@ -36,7 +41,7 @@ public class OrderUpdateService {
     public Order updateOrder(Order order) {
         Boolean checkStatus = checkOrderStatus(order);
         if(checkStatus) {
-            return updateS3Object(order);
+            return updateBlobObject(order);
         } else {
             context.getLogger().log("Order is already processed.Can not update now...");
             throw new OrderUpdateException("Order is already processed.Can not update now...");
@@ -56,20 +61,16 @@ public class OrderUpdateService {
         }
     }
 
-    private Order updateS3Object(Order order){
+    private Order updateBlobObject(Order order){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         String fileName = order.getDealerId() + "_" + order.getCustomerId()+ "_" + order.getOrderId();
         try {
-            PutObjectRequest objectRequest = PutObjectRequest.builder()
-                    .bucket("dealer-orders")
-                    .key(fileName)
-                    .build();
-
-            s3Client.putObject(objectRequest, RequestBody.fromString(gson.toJson(order)));
+            BlockBlobClient blobClient = blobServiceClient.getBlobContainerClient("dealer-orders").getBlobClient(fileName).getBlockBlobClient();
+            blobClient.upload(BinaryData.fromString(gson.toJson(order)), true);
             return order;
-        } catch(S3Exception e) {
-            context.getLogger().log("Exception while updating object to S3 : " + e.getMessage());
+        } catch(Exception e) {
+            context.getLogger().log("Exception while updating object to Blob Storage : " + e.getMessage());
             throw new S3FileUploadException("Object update failed");
         }
     }

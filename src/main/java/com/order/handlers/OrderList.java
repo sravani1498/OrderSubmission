@@ -9,13 +9,12 @@ import com.order.model.Order;
 import com.order.model.OrderRequest;
 import com.order.service.DbService;
 import com.order.service.S3Service;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.s3.S3Client;
-
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
 import java.util.ArrayList;
 
 public class OrderList implements RequestHandler<OrderRequest, ArrayList<Order>>{
-    private final S3Client s3Client;
+    private final BlobServiceClient blobServiceClient;
     private final DynamoDbClient dynamoDbClient;
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -23,7 +22,7 @@ public class OrderList implements RequestHandler<OrderRequest, ArrayList<Order>>
     public OrderList() {
         // Initialize the SDK client outside of the handler method so that it can be reused for subsequent invocations.
         // It is initialized when the class is loaded.
-        s3Client = DependencyFactory.s3Client();
+        blobServiceClient = new BlobServiceClientBuilder().credential(new DefaultAzureCredentialBuilder().build()).buildClient();
         // Consider invoking a simple api here to pre-warm up the application, eg: dynamodb#listTables
         // Initialize the SDK client outside of the handler method so that it can be reused for subsequent invocations.
         // It is initialized when the class is loaded.
@@ -35,7 +34,7 @@ public class OrderList implements RequestHandler<OrderRequest, ArrayList<Order>>
 //
     @Override
     public ArrayList<Order> handleRequest(OrderRequest requestEvent, Context context) {
-        S3Service s3Service = new S3Service(s3Client, context);
+        S3Service s3Service = new S3Service(blobServiceClient, context);
         DbService dbService = new DbService(dynamoDbClient, context);
         ArrayList<com.order.entity.Order> orderListFromDb;
         ArrayList<Order> orderList = new ArrayList<>();
